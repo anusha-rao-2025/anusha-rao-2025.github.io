@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Statement Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f9;
+        }
+        .statement-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .statement-table th, .statement-table td {
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: top;
+        }
+        .statement-table th {
+            background-color: #f8fafc;
+            font-weight: 600;
+            color: #475569;
+            text-align: center;
+        }
+        .statement-table input {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.375rem;
+            text-align: right;
+            font-size: 0.875rem;
+            transition: border-color 0.2s;
+        }
+        .statement-table input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+        .total-row td {
+            font-weight: 700;
+            background-color: #f1f5f9;
+        }
+        .total-value, .sub-total-value {
+            text-align: right;
+            font-weight: bold;
+        }
+        .category-header {
+            font-weight: 600;
+            color: #1e3a8a;
+        }
+        .unbalanced-warning {
+            color: #ef4444;
+            font-weight: 600;
+        }
+        .balanced {
+            color: #22c55e;
+            font-weight: 600;
+        }
+        .calculator {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+        }
+        .calculator button {
+            transition: background-color 0.2s;
+        }
+    </style>
+</head>
+<body class="antialiased text-slate-800">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <h1 class="text-2xl font-bold text-slate-900">Financial Statement Generator</h1>
+            <p class="text-sm text-slate-500">Balance Sheet and Income Statement templates based on French standards.</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Financial Statements Section -->
+            <div class="lg:col-span-2 space-y-8">
+                
+                <!-- Balance Sheet Section -->
+                <section id="bilan" class="bg-white p-6 rounded-lg shadow-sm">
+                    <h2 class="text-xl font-semibold mb-4 border-b pb-2">Balance Sheet (Bilan)</h2>
+                    <table class="statement-table">
+                        <thead>
+                            <tr>
+                                <th>Assets</th>
+                                <th class="w-28">GBV (€)</th>
+                                <th class="w-28">Dep. (€)</th>
+                                <th class="w-28">NBV (€)</th>
+                                <th class="border-l-2 border-slate-300">Equity & Liabilities</th>
+                                <th class="w-32">Amount (€)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Fixed Assets vs Equity -->
+                            <tr>
+                                <td class="category-header">FIXED ASSETS</td>
+                                <td></td>
+                                <td></td>
+                                <td class="sub-total-value" id="total-actif-immobilise">0.00</td>
+                                <td class="category-header border-l-2 border-slate-300">SHAREHOLDERS' EQUITY</td>
+                                <td class="sub-total-value" id="total-capitaux-propres">0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Intangible Assets</td>
+                                <td><input type="number" class="calc-input" id="gbv-intangible" placeholder="0.00"></td>
+                                <td><input type="number" class="calc-input" id="dep-intangible" placeholder="0.00"></td>
+                                <td class="sub-total-value" id="net-intangible-assets">0.00</td>
+                                <td class="border-l-2 border-slate-300">Share capital</td>
+                                <td><input type="number" class="calc-input" data-category="capitaux-propres" placeholder="0.00"></td>
+                            </tr>
+                            <tr>
+                                <td>Tangible Assets</td>
+                                <td><input type="number" class="calc-input" id="gbv-tangible" placeholder="0.00"></td>
+                                <td><input type="number" class="calc-input" id="dep-tangible" placeholder="0.00"></td>
+                                <td class="sub-total-value" id="net-tangible-assets">0.00</td>
+                                <td class="border-l-2 border-slate-300">Reserves</td>
+                                <td><input type="number" class="calc-input" data-category="capitaux-propres" placeholder="0.00"></td>
+                            </tr>
+                             <tr>
+                                <td>Financial Assets</td>
+                                <td></td>
+                                <td></td>
+                                <td><input type="number" class="calc-input" id="financial-assets" placeholder="0.00"></td>
+                                <td class="border-l-2 border-slate-300">Retained earnings</td>
+                                <td><input type="number" class="calc-input" data-category="capitaux-propres" placeholder="0.00"></td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td class="border-l-2 border-slate-300">Net income for the period</td>
+                                <td><input type="number" class="calc-input" id="resultat-bilan" data-category="capitaux-propres" placeholder="0.00" readonly></td>
+                            </tr>
+                            <!-- Current Assets vs Provisions & Liabilities -->
+                             <tr>
+                                <td class="category-header pt-4">CURRENT ASSETS</td>
+                                <td></td>
+                                <td></td>
+                                <td class="sub-total-value" id="total-actif-circulant">0.00</td>
+                                <td class="category-header border-l-2 border-slate-300 pt-4">PROVISIONS</td>
+                                <td class="sub-total-value" id="total-provisions">0.00</td>
+                            </tr>
+                             <tr>
+                                <td>Inventories</td>
+                                <td></td>
+                                <td></td>
+                                <td><input type="number" class="calc-input" data-category="actif-circulant" placeholder="0.00"></td>
+                                <td class="border-l-2 border-slate-300">Provisions for risks & charges</td>
+                                <td><input type="number" class="calc-input" data-category="provisions" placeholder="0.00"></td>
+                            </tr>
+                            <tr>
+                                <td>Trade receivables</td>
+                                <td></td>
+                                <td></td>
+                                <td><input type="number" class="calc-input" data-category="actif-circulant" placeholder="0.00"></td>
+                                <td class="category-header border-l-2 border-slate-300 pt-4">LIABILITIES</td>
+                                <td class="sub-total-value" id="total-dettes">0.00</td>
+                            </tr>
+                             <tr>
+                                <td>Other receivables</td>
+                                <td></td>
+                                <td></td>
+                                <td><input type="number" class="calc-input" data-category="actif-circulant" placeholder="0.00"></td>
+                                <td class="border-l-2 border-slate-300">Financial liabilities</td>
+                                <td><input type="number" class="calc-input" data-category="dettes" placeholder="0.00"></td>
+                            </tr>
+                            <tr>
+                                <td>Cash and cash equivalents</td>
+                                <td></td>
+                                <td></td>
+                                <td><input type="number" class="calc-input" data-category="actif-circulant" placeholder="0.00"></td>
+                                <td class="border-l-2 border-slate-300">Trade payables</td>
+                                <td><input type="number" class="calc-input" data-category="dettes" placeholder="0.00"></td>
+                            </tr>
+                            <tr>
+                                <td>Prepaid expenses</td>
+                                <td></td>
+                                <td></td>
+                                <td><input type="number" class="calc-input" data-category="actif-circulant" placeholder="0.00"></td>
+                                <td class="border-l-2 border-slate-300">Tax and social liabilities</td>
+                                <td><input type="number" class="calc-input" data-category="dettes" placeholder="0.00"></td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td class="border-l-2 border-slate-300">Other liabilities</td>
+                                <td><input type="number" class="calc-input" data-category="dettes" placeholder="0.00"></td>
+                            </tr>
+                             <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td class="border-l-2 border-slate-300">Deferred income</td>
+                                <td><input type="number" class="calc-input" data-category="dettes" placeholder="0.00"></td>
+                            </tr>
+
+                            <!-- Totals -->
+                            <tr class="total-row bg-blue-100">
+                                <td class="font-bold">TOTAL ASSETS</td>
+                                <td></td>
+                                <td></td>
+                                <td class="total-value" id="total-actif">0.00</td>
+                                <td class="font-bold border-l-2 border-slate-300">TOTAL LIABILITIES & EQUITY</td>
+                                <td class="total-value" id="total-passif">0.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                     <div class="mt-4 text-center text-lg" id="balance-status">
+                        <!-- Balance status message appears here -->
+                    </div>
+                </section>
+
+                <!-- Income Statement Section -->
+                <section id="compte-de-resultat" class="bg-white p-6 rounded-lg shadow-sm">
+                    <h2 class="text-xl font-semibold mb-4 border-b pb-2">Income Statement (Compte de Résultat)</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+                        <!-- Expenses Column -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-red-700 mb-3 text-center">EXPENSES</h3>
+                            <table class="statement-table w-full">
+                               <tbody>
+                                   <tr class="total-row"><td class="font-semibold">OPERATING EXPENSES</td><td class="total-value w-32" id="total-charges-exploitation">0.00</td></tr>
+                                   <tr><td>Purchases of goods & raw materials</td><td><input type="number" class="calc-input" data-category="charges-exploitation" placeholder="0.00"></td></tr>
+                                   <tr><td>Other external expenses</td><td><input type="number" class="calc-input" data-category="charges-exploitation" placeholder="0.00"></td></tr>
+                                   <tr><td>Taxes and duties</td><td><input type="number" class="calc-input" data-category="charges-exploitation" placeholder="0.00"></td></tr>
+                                   <tr><td>Wages and salaries</td><td><input type="number" class="calc-input" data-category="charges-exploitation" placeholder="0.00"></td></tr>
+                                   <tr><td>Social security costs</td><td><input type="number" class="calc-input" data-category="charges-exploitation" placeholder="0.00"></td></tr>
+                                   <tr><td>Depreciation and amortization</td><td><input type="number" class="calc-input" data-category="charges-exploitation" placeholder="0.00"></td></tr>
+                                   
+                                   <tr class="total-row"><td class="font-semibold">FINANCIAL EXPENSES</td><td class="total-value" id="total-charges-financieres">0.00</td></tr>
+                                   <tr><td>Financial expenses</td><td><input type="number" class="calc-input" data-category="charges-financieres" placeholder="0.00"></td></tr>
+
+                                   <tr class="total-row"><td class="font-semibold">EXCEPTIONAL EXPENSES</td><td class="total-value" id="total-charges-exceptionnelles">0.00</td></tr>
+                                   <tr><td>Exceptional expenses</td><td><input type="number" class="calc-input" data-category="charges-exceptionnelles" placeholder="0.00"></td></tr>
+                               </tbody>
+                            </table>
+                        </div>
+                         <!-- Revenues Column -->
+                        <div>
+                             <h3 class="text-lg font-semibold text-green-700 mb-3 text-center">REVENUES</h3>
+                             <table class="statement-table w-full">
+                                 <tbody>
+                                   <tr class="total-row"><td class="font-semibold">OPERATING REVENUE</td><td class="total-value w-32" id="total-produits-exploitation">0.00</td></tr>
+                                   <tr><td>Net sales</td><td><input type="number" class="calc-input" data-category="produits-exploitation" placeholder="0.00"></td></tr>
+                                   <tr><td>Capitalized production</td><td><input type="number" class="calc-input" data-category="produits-exploitation" placeholder="0.00"></td></tr>
+                                   <tr><td>Other operating income</td><td><input type="number" class="calc-input" data-category="produits-exploitation" placeholder="0.00"></td></tr>
+                                   
+                                   <tr class="total-row"><td class="font-semibold">FINANCIAL REVENUE</td><td class="total-value" id="total-produits-financiers">0.00</td></tr>
+                                   <tr><td>Financial income</td><td><input type="number" class="calc-input" data-category="produits-financiers" placeholder="0.00"></td></tr>
+                                   
+                                   <tr class="total-row"><td class="font-semibold">EXCEPTIONAL REVENUE</td><td class="total-value" id="total-produits-exceptionnels">0.00</td></tr>
+                                   <tr><td>Exceptional income</td><td><input type="number" class="calc-input" data-category="produits-exceptionnels" placeholder="0.00"></td></tr>
+                                 </tbody>
+                             </table>
+                        </div>
+                    </div>
+                    <!-- Summary Section -->
+                    <div class="mt-6">
+                        <table class="statement-table w-full">
+                            <tbody>
+                                <tr class="total-row bg-slate-200"><td>OPERATING INCOME</td><td class="total-value w-32" id="resultat-exploitation">0.00</td></tr>
+                                <tr class="total-row bg-slate-200"><td>FINANCIAL RESULT</td><td class="total-value" id="resultat-financier">0.00</td></tr>
+                                <tr class="total-row bg-slate-200"><td>CURRENT INCOME BEFORE TAX</td><td class="total-value" id="resultat-courant">0.00</td></tr>
+                                <tr class="total-row bg-slate-200"><td>EXCEPTIONAL RESULT</td><td class="total-value" id="resultat-exceptionnel">0.00</td></tr>
+                                <tr><td>Corporate income tax</td><td><input type="number" class="calc-input" id="impots-societes" placeholder="0.00"></td></tr>
+                                <tr class="total-row bg-blue-100 text-lg"><td>NET INCOME</td><td class="total-value" id="resultat-net">0.00</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Calculator Section -->
+            <aside class="sticky top-8">
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h2 class="text-xl font-semibold mb-4 border-b pb-2">Calculator</h2>
+                    <div class="bg-slate-800 text-white p-4 rounded-md text-right text-3xl font-mono mb-4" id="calculator-display">0</div>
+                    <div class="calculator">
+                        <button class="calc-btn bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 rounded-md" data-action="clear">AC</button>
+                        <button class="calc-btn bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 rounded-md" data-action="backspace">⌫</button>
+                        <button class="calc-btn bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 rounded-md" data-value="%">%</button>
+                        <button class="calc-btn bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-md" data-action="operator" data-value="/">÷</button>
+
+                        <button class="calc-btn bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 rounded-md" data-value="7">7</button>
+                        <button class="calc-btn bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 rounded-md" data-value="8">8</button>
+                        <button class="calc-btn bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 rounded-md" data-value="9">9</button>
+                        <button class="calc-btn bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-md" data-action="operator" data-value="*">×</button>
+                        
+                        <button class="calc-btn bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 rounded-md" data-value="4">4</button>
+                        <button class="calc-btn bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 rounded-md" data-value="5">5</button>
+                        <button class="calc-btn bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 rounded-md" data-value="6">6</button>
+                        <button class="calc-btn bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-md" data-action="operator" data-value="-">−</button>
+
+                        <button class="calc-btn bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 rounded-md" data-value="1">1</button>
+                        <button class="calc-btn bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 rounded-md" data-value="2">2</button>
+                        <button class="calc-btn bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 rounded-md" data-value="3">3</button>
+                        <button class="calc-btn bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-md" data-action="operator" data-value="+">+</button>
+
+                        <button class="calc-btn col-span-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 rounded-md" data-value="0">0</button>
+                        <button class="calc-btn bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 rounded-md" data-value=".">.</button>
+                        <button class="calc-btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-md" data-action="calculate">=</button>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- FINANCIAL STATEMENT LOGIC ---
+            const allInputs = document.querySelectorAll('.calc-input');
+
+            const formatCurrency = (value) => {
+                const num = isNaN(value) || !isFinite(value) ? 0 : value;
+                return new Intl.NumberFormat('en-US', { style: 'decimal', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
+            };
+
+            const calculateCategoryTotal = (category) => {
+                const inputs = document.querySelectorAll(`.calc-input[data-category="${category}"]`);
+                let total = 0;
+                inputs.forEach(input => {
+                    total += parseFloat(input.value) || 0;
+                });
+                return total;
+            };
+
+            const updateBalanceSheet = () => {
+                // --- Assets Side ---
+                const gbvIntangible = parseFloat(document.getElementById('gbv-intangible').value) || 0;
+                const depIntangible = parseFloat(document.getElementById('dep-intangible').value) || 0;
+                const netIntangible = gbvIntangible - depIntangible;
+                document.getElementById('net-intangible-assets').textContent = formatCurrency(netIntangible);
+
+                const gbvTangible = parseFloat(document.getElementById('gbv-tangible').value) || 0;
+                const depTangible = parseFloat(document.getElementById('dep-tangible').value) || 0;
+                const netTangible = gbvTangible - depTangible;
+                document.getElementById('net-tangible-assets').textContent = formatCurrency(netTangible);
+                
+                // NBV for Financial Assets is its direct input value
+                const financialAssets = parseFloat(document.getElementById('financial-assets').value) || 0;
+                
+                const totalFixedAssets = netIntangible + netTangible + financialAssets;
+                document.getElementById('total-actif-immobilise').textContent = formatCurrency(totalFixedAssets);
+
+                const totalCurrentAssets = calculateCategoryTotal('actif-circulant');
+                document.getElementById('total-actif-circulant').textContent = formatCurrency(totalCurrentAssets);
+                
+                const totalActif = totalFixedAssets + totalCurrentAssets;
+                document.getElementById('total-actif').textContent = formatCurrency(totalActif);
+                
+                // --- Equity & Liabilities Side ---
+                const totalCapitauxPropres = calculateCategoryTotal('capitaux-propres');
+                document.getElementById('total-capitaux-propres').textContent = formatCurrency(totalCapitauxPropres);
+                
+                const totalProvisions = calculateCategoryTotal('provisions');
+                document.getElementById('total-provisions').textContent = formatCurrency(totalProvisions);
+
+                const totalDettes = calculateCategoryTotal('dettes');
+                document.getElementById('total-dettes').textContent = formatCurrency(totalDettes);
+
+                const totalPassif = totalCapitauxPropres + totalProvisions + totalDettes;
+                document.getElementById('total-passif').textContent = formatCurrency(totalPassif);
+                
+                // --- Balance Check ---
+                const balanceStatus = document.getElementById('balance-status');
+                if (Math.abs(totalActif - totalPassif) < 0.01 && totalActif !== 0) {
+                    balanceStatus.innerHTML = `<span class="balanced">✓ Balance Sheet is Balanced</span>`;
+                } else {
+                    const difference = formatCurrency(totalActif - totalPassif);
+                    balanceStatus.innerHTML = `<span class="unbalanced-warning">✗ Balance Sheet is Unbalanced (Diff: ${difference} €)</span>`;
+                }
+            };
+
+            const updateIncomeStatement = () => {
+                const totals = {
+                    'produits-exploitation': calculateCategoryTotal('produits-exploitation'),
+                    'charges-exploitation': calculateCategoryTotal('charges-exploitation'),
+                    'produits-financiers': calculateCategoryTotal('produits-financiers'),
+                    'charges-financieres': calculateCategoryTotal('charges-financieres'),
+                    'produits-exceptionnels': calculateCategoryTotal('produits-exceptionnels'),
+                    'charges-exceptionnelles': calculateCategoryTotal('charges-exceptionnelles'),
+                };
+                
+                const impots = parseFloat(document.getElementById('impots-societes').value) || 0;
+                
+                // Update sub-totals
+                document.getElementById('total-produits-exploitation').textContent = formatCurrency(totals['produits-exploitation']);
+                document.getElementById('total-charges-exploitation').textContent = formatCurrency(totals['charges-exploitation']);
+                document.getElementById('total-produits-financiers').textContent = formatCurrency(totals['produits-financiers']);
+                document.getElementById('total-charges-financieres').textContent = formatCurrency(totals['charges-financieres']);
+                document.getElementById('total-produits-exceptionnels').textContent = formatCurrency(totals['produits-exceptionnels']);
+                document.getElementById('total-charges-exceptionnelles').textContent = formatCurrency(totals['charges-exceptionnelles']);
+
+                // Calculate results
+                const resultatExploitation = totals['produits-exploitation'] - totals['charges-exploitation'];
+                const resultatFinancier = totals['produits-financiers'] - totals['charges-financieres'];
+                const resultatCourant = resultatExploitation + resultatFinancier;
+                const resultatExceptionnel = totals['produits-exceptionnels'] - totals['charges-exceptionnelles'];
+                const resultatNet = resultatCourant + resultatExceptionnel - impots;
+
+                document.getElementById('resultat-exploitation').textContent = formatCurrency(resultatExploitation);
+                document.getElementById('resultat-financier').textContent = formatCurrency(resultatFinancier);
+                document.getElementById('resultat-courant').textContent = formatCurrency(resultatCourant);
+                document.getElementById('resultat-exceptionnel').textContent = formatCurrency(resultatExceptionnel);
+                document.getElementById('resultat-net').textContent = formatCurrency(resultatNet);
+                
+                // Link net result to balance sheet
+                const resultatBilanInput = document.getElementById('resultat-bilan');
+                resultatBilanInput.value = resultatNet.toFixed(2);
+                
+                // Manually trigger an input event on the linked field to update the balance sheet
+                resultatBilanInput.dispatchEvent(new Event('input'));
+            };
+
+            allInputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    updateIncomeStatement();
+                    updateBalanceSheet();
+                });
+            });
+
+            // Initial calculation on load
+            updateIncomeStatement();
+            updateBalanceSheet();
+            
+            // --- CALCULATOR LOGIC ---
+            const display = document.getElementById('calculator-display');
+            const buttons = document.querySelectorAll('.calc-btn');
+            let currentValue = '';
+            let previousValue = '';
+            let operator = null;
+            let shouldResetDisplay = false;
+
+            const updateDisplay = () => {
+                display.textContent = currentValue || '0';
+            };
+
+            const calculate = () => {
+                let result;
+                const prev = parseFloat(previousValue);
+                const current = parseFloat(currentValue);
+                if (isNaN(prev) || isNaN(current)) return;
+
+                switch (operator) {
+                    case '+': result = prev + current; break;
+                    case '-': result = prev - current; break;
+                    case '*': result = prev * current; break;
+                    case '/': result = prev / current; break;
+                    default: return;
+                }
+                return result;
+            };
+
+            buttons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const value = button.dataset.value;
+                    const action = button.dataset.action;
+
+                    if (value && !action) { // Number or decimal point
+                        if (shouldResetDisplay) {
+                            currentValue = '';
+                            shouldResetDisplay = false;
+                        }
+                        if (value === '.' && currentValue.includes('.')) return;
+                        currentValue += value;
+                    }
+
+                    if (action === 'operator') {
+                        if (operator && previousValue && currentValue) {
+                           const result = calculate();
+                           currentValue = String(result);
+                           previousValue = currentValue;
+                        } else {
+                            previousValue = currentValue;
+                        }
+                        currentValue = '';
+                        operator = value;
+                    }
+                    
+                    if (action === 'calculate') {
+                        if (operator && previousValue && currentValue) {
+                            const result = calculate();
+                            currentValue = String(result);
+                            operator = null;
+                            previousValue = '';
+                            shouldResetDisplay = true;
+                        }
+                    }
+
+                    if (action === 'clear') {
+                        currentValue = '';
+                        previousValue = '';
+                        operator = null;
+                    }
+                    
+                    if (action === 'backspace') {
+                        currentValue = currentValue.slice(0, -1);
+                    }
+
+                    if (value === '%') {
+                        currentValue = String(parseFloat(currentValue) / 100);
+                    }
+
+                    updateDisplay();
+                });
+            });
+        });
+    </script>
+</body>
+</html>
